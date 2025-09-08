@@ -1,49 +1,219 @@
-<html>  
+<!DOCTYPE html>
+<html lang="no">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bursdagsgave Bulle</title>
   <style>
+    :root { --brand:#a6338f; --bg:#ffffff; --text:#333; --accent:#3dea4e; --border:#474f82; }
+    * { box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
-      background-color: #ffffff;
-      color: #333;
-      margin: 20px;
-      padding: 20px;
-    }
-    h1 {
-      color: #a6338f;
-    }
-    #answer {
-      margin-top: 20px;
-      margin-bottom: 20px;
-      padding: 10px;
-      border: 2px solid #5c1313;
-      border-radius: 5px;
-      width: 300px;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
     }
     .container {
-      border: 2px solid #474f82;
-      border-radius: 10%;
-      padding: 20px;
-      background-color: #3dea4e;
-      max-width: 500px;
+      margin: 0 auto;
+      max-width: 720px;
+      padding: 24px;
+      background: var(--accent);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      text-align: center;
+      position: relative;
+      z-index: 0; /* content stays below the canvas */
     }
-
+    h1 { color: var(--brand); margin-top: 0; }
+    p { font-size: 18px; }
     .picture {
       max-width: 100%;
       height: auto;
-      border-radius: 10px;
-      margin-top: 20px;
+      border-radius: 12px;
+      margin-top: 16px;
     }
-   
-    
+
+    /* 🔥 Fireworks ON TOP of everything */
+    #fireworks {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999;           /* higher than any content */
+      pointer-events: none;    /* clicks pass through */
+    }
+
+    .replay {
+      margin-top: 16px;
+      padding: 10px 16px;
+      background: var(--brand);
+      color: #fff;
+      border: 0;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      z-index: 1; /* not required, but explicit */
+    }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      #fireworks { display: none; }
+    }
   </style>
 </head>
 <body>
+  <!-- Canvas is first, but z-index makes it render above -->
+  <canvas id="fireworks" aria-hidden="true"></canvas>
+
   <div class="container">
-    <h1>Hold av søndag 2.november! </h1>
-    <p>Da skal vi på Book of Mormon! </p>
-    <img src="https://www.showpakker.no/media/bhqlhi3g/the-book-of-mormon-billetter-folketeateret-oslo-2025.jpg?cc=0.0033950276145150653,0.091322310322308,0.0033950276145150653,0.0034224652130742097&width=794&height=401&v=1dc2093368f8910" alt="" class="picture">
+    <h1>Hold av søndag 2. november!</h1>
+    <p>Da skal vi på <strong>Book of Mormon</strong>! 🎭</p>
+    <img
+      src="https://www.showpakker.no/media/bhqlhi3g/the-book-of-mormon-billetter-folketeateret-oslo-2025.jpg?cc=0.0033950276145150653,0.091322310322308,0.0033950276145150653,0.0034224652130742097&width=794&height=401&v=1dc2093368f8910"
+      alt="The Book of Mormon – Folketeateret Oslo"
+      class="picture"
+    />
+    <div>
+      <button class="replay" id="replay">Spill av fyrverkeri 🎆</button>
+    </div>
   </div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById('fireworks');
+      const ctx = canvas.getContext('2d');
+      let dpr = Math.max(1, window.devicePixelRatio || 1);
+      let W = 0, H = 0;
+
+      function resize() {
+        W = window.innerWidth; H = window.innerHeight;
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+        canvas.width = Math.floor(W * dpr);
+        canvas.height = Math.floor(H * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      window.addEventListener('resize', resize, { passive: true });
+      resize();
+
+      const GRAVITY = 0.12;
+      const FRICTION = 0.985;
+      const ROCKET_SPAWN_MS = 320;
+      const COLORS = () => `hsl(${Math.floor(Math.random()*360)},100%,60%)`;
+
+      class Particle {
+        constructor(x, y, vx, vy, color) {
+          this.x = x; this.y = y;
+          this.vx = vx; this.vy = vy;
+          this.alpha = 1;
+          this.color = color;
+          this.size = 2 + Math.random() * 2;
+        }
+        update() {
+          this.vx *= FRICTION;
+          this.vy *= FRICTION;
+          this.vy += GRAVITY * 0.08;
+          this.x += this.vx;
+          this.y += this.vy;
+          this.alpha -= 0.012 + Math.random()*0.01;
+        }
+        draw() {
+          ctx.globalAlpha = Math.max(this.alpha, 0.9); // slightly strong on top
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+          ctx.fillStyle = this.color;
+          ctx.fill();
+        }
+        alive() { return this.alpha > 0; }
+      }
+
+      class Rocket {
+        constructor() {
+          this.x = 40 + Math.random()*(W-80);
+          this.y = H + 10;
+          this.vx = (Math.random()-0.5) * 1.2;
+          this.vy = - (7 + Math.random()*3.5);
+          this.color = COLORS();
+          this.exploded = false;
+          this.heightToExplode = 0.25*H + Math.random()*0.45*H;
+        }
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          this.vy += GRAVITY * 0.2;
+          if (!this.exploded && (this.vy >= -0.5 || this.y < this.heightToExplode)) {
+            this.exploded = true;
+            explode(this.x, this.y, this.color);
+          }
+        }
+        draw() {
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = this.color;
+          ctx.fillRect(this.x - 1.5, this.y - 6, 3, 6);
+        }
+        alive() { return !this.exploded && this.y < H + 20; }
+      }
+
+      let rockets = [];
+      let particles = [];
+      let running = false;
+      let lastSpawn = 0;
+      let stopLaunchingAt = 0;
+
+      function explode(x, y, color) {
+        const count = 80 + Math.floor(Math.random()*70);
+        for (let i=0; i<count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 2 + Math.random()*4;
+          const vx = Math.cos(angle) * speed;
+          const vy = Math.sin(angle) * speed;
+          particles.push(new Particle(x, y, vx, vy, color));
+        }
+      }
+
+      function step(now) {
+        if (!running) return;
+        requestAnimationFrame(step);
+
+        // Fade last frame (on transparent canvas) to create trails
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        ctx.fillRect(0,0,W,H);
+
+        // Draw bright particles/rockets on top of content
+        ctx.globalCompositeOperation = 'lighter';
+
+        if (now < stopLaunchingAt && now - lastSpawn > ROCKET_SPAWN_MS) {
+          lastSpawn = now;
+          rockets.push(new Rocket());
+          if (Math.random() < 0.35) rockets.push(new Rocket());
+        }
+
+        rockets.forEach(r => { r.update(); r.draw(); });
+        particles.forEach(p => { p.update(); p.draw(); });
+
+        rockets = rockets.filter(r => r.alive());
+        particles = particles.filter(p => p.alive());
+      }
+
+      function startFireworks(durationMs = 6500) {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        rockets.length = 0;
+        particles.length = 0;
+        running = true;
+        lastSpawn = 0;
+        const now = performance.now();
+        stopLaunchingAt = now + durationMs;
+        requestAnimationFrame(step);
+        setTimeout(() => { running = false; }, durationMs + 4000);
+      }
+
+      startFireworks();
+      document.getElementById('replay').addEventListener('click', () => startFireworks(), { passive: true });
+    })();
+  </script>
 </body>
 </html>
