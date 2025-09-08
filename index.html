@@ -1,48 +1,79 @@
-<html>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f8ff;
-            color: #333;
-            margin: 20px;
-            padding: 20px;
-            border: 2px solid #474f82;
-            border-radius: 10%;
-        }
-        h1 {
-            color: #a6338f;
-            padding: 10px;
-        }
-        ul {
-            padding: 10px;
-        }
-
-        p {
-            padding: 10px;
-        }
-    </style>
-
-  <head>
-    <title>Bursdagsgave Bulle</title>
-  </head>
-
-
-
-  <body>
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bursdagsgave Bulle</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #ffffff;
+      color: #333;
+      margin: 20px;
+      padding: 20px;
+    }
+    h1 {
+      color: #a6338f;
+    }
+    #answer {
+      margin-top: 20px;
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 2px solid #5c1313;
+      border-radius: 5px;
+      width: 300px;
+    }
+    .container {
+      border: 2px solid #474f82;
+      border-radius: 10%;
+      padding: 20px;
+      background-color: #3dea4e;
+      max-width: 500px;
+    }
+    #nextButton {
+      display: none; /* skjult som standard */
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #a6338f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
     <h1>Gratulerer med dagen!</h1>
-    <p>For å finne gaven må du løse gåten: </p>
+    <p>For å finne gaven må du løse gåten:</p>
     <ul>
       <li>Blodtime</li>
       <li>Jeger</li>
       <li>Dynamitt</li>
     </ul>
-  </body>
-  
-  <input type="text" id="answer" placeholder="Skriv løsningen her">
+
+    <input type="text" id="answer" placeholder="Hvem er jeg?">
+    <button onclick="checkAnswer()">Sjekk svaret</button>
+
+    <button id="nextButton" onclick="goToGift()">Åpne gaven 🎁</button>
+  </div>
+
   <script>
-    const answer = getElementById('answer').value;
-    if (value == 'Jakob Schøyen Andersen') {
-        
+    function checkAnswer() {
+      const value = document.getElementById('answer').value.trim();
+
+      // gjør sammenligningen case-insensitive
+      if (value.toLowerCase() === 'jakob schøyen andersen') {
+        alert('Hurra! Korrekt!');
+        document.getElementById('nextButton').style.display = 'inline-block';
+      } else {
+        alert('Feil svar, prøv igjen!');
+      }
     }
-  </script>  
+
+    function goToGift() {
+      // Endre "gave.html" til siden du vil åpne
+      window.location.href = "gave.html";
+    }
+  </script>
+</body>
 </html>
