@@ -39,6 +39,7 @@
       border-radius: 5px;
       cursor: pointer;
     }
+     #status { margin-top: 10px; min-height: 1.2em; }
   </style>
 </head>
 <body>
@@ -65,8 +66,10 @@
       if (value.toLowerCase() === 'jakob schøyen andersen') {
         alert('Hurra! Korrekt!');
         document.getElementById('nextButton').style.display = 'inline-block';
+        document.getElementById('status').textContent = 'Riktig svar 🎉';
       } else {
         alert('Feil svar, prøv igjen!');
+        document.getElementById('status').textContent = 'Prøv igjen 😉';
       }
     }
 
