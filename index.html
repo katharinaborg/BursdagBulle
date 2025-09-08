@@ -2,44 +2,86 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bursdagsgave Bulle</title>
+  <meta name="theme-color" content="#a6338f" />
   <style>
+    :root {
+      --brand:#a6338f;
+      --bg:#ffffff;
+      --text:#222;
+      --accent:#3dea4e;
+      --border:#474f82;
+      --danger:#8b1e1e;
+      --radius:16px;
+      --space:16px;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
     body {
-      font-family: Arial, sans-serif;
-      background-color: #ffffff;
-      color: #333;
-      margin: 20px;
-      padding: 20px;
-    }
-    h1 {
-      color: #a6338f;
-    }
-    #answer {
-      margin-top: 20px;
-      margin-bottom: 20px;
-      padding: 10px;
-      border: 2px solid #5c1313;
-      border-radius: 5px;
-      width: 300px;
+      -webkit-text-size-adjust: 100%;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 12px);
+      display: grid;
+      place-items: center;
     }
     .container {
-      border: 2px solid #474f82;
-      border-radius: 10%;
-      padding: 20px;
-      background-color: #3dea4e;
-      max-width: 500px;
+      width: 100%;
+      max-width: 420px;             
+      background: var(--accent);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 18px;
+      box-shadow: var(--shadow);
     }
-    #nextButton {
-      display: none; /* skjult som standard */
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #a6338f;
-      color: white;
+    h1 {
+      color: var(--brand);
+      margin: 0 0 8px;
+      font-size: clamp(20px, 4.5vw, 28px);
+      line-height: 1.2;
+      text-align: center;
+    }
+    p, li { font-size: clamp(15px, 3.8vw, 18px); line-height: 1.5; }
+    ul { margin: 8px 0 16px 20px; padding: 0; }
+    #answer {
+      display: block;
+      width: 100%;
+      margin: 10px 0 12px;
+      padding: 12px 14px;
+      font-size: 16px; 
+      border: 2px solid var(--danger);
+      border-radius: 10px;
+      outline: none;
+      background: #fff;
+    }
+    #answer:focus { box-shadow: 0 0 0 3px rgba(166,51,143,.2); }
+    .btn {
+      display: inline-block;
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 16px;
+      line-height: 1;
+      background: var(--brand);
+      color: #fff;
       border: none;
-      border-radius: 5px;
+      border-radius: 12px;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
-     #status { margin-top: 10px; min-height: 1.2em; }
+    .btn + .btn { margin-top: 10px; }
+    #nextButton { display: none; }
+    #status { margin-top: 10px; min-height: 1.2em; font-weight: 600; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#0d0f12; --text:#eaeaea; --accent:#2c9b35; --border:#6c78c4; }
+      body { background: var(--bg); }
+    }
   </style>
 </head>
 <body>
@@ -52,18 +94,33 @@
       <li>Dynamitt</li>
     </ul>
 
-    <input type="text" id="answer" placeholder="Hvem er jeg?">
-    <button onclick="checkAnswer()">Sjekk svaret</button>
 
-    <button id="nextButton" onclick="goToGift()">Åpne gaven 🎁</button>
+    <form id="riddleForm" novalidate>
+      <input
+        type="text"
+        id="answer"
+        placeholder="Hvem er jeg?"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        inputmode="text"
+      />
+      <button type="submit" class="btn">Sjekk svaret</button>
+    </form>
+
+    <button id="nextButton" class="btn" onclick="goToGift()">Åpne gaven 🎁</button>
+    <div id="status" aria-live="polite"></div>
   </div>
 
   <script>
-    function checkAnswer() {
+   
+    document.getElementById('riddleForm').addEventListener('submit', function (e) {
+      e.preventDefault(); 
       const value = document.getElementById('answer').value.trim();
+      const correct = 'jakob schøyen andersen';
 
-      // gjør sammenligningen case-insensitive
-      if (value.toLowerCase() === 'jakob schøyen andersen') {
+      if (value.toLowerCase() === correct) {
         alert('Hurra! Korrekt!');
         document.getElementById('nextButton').style.display = 'inline-block';
         document.getElementById('status').textContent = 'Riktig svar 🎉';
@@ -71,11 +128,10 @@
         alert('Feil svar, prøv igjen!');
         document.getElementById('status').textContent = 'Prøv igjen 😉';
       }
-    }
+    });
 
     function goToGift() {
-      // Endre "gave.html" til siden du vil åpne
-      window.location.href = "gave.html";
+      window.location.href = 'gave.html';
     }
   </script>
 </body>
